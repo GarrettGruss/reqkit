@@ -1,4 +1,4 @@
-# Requirements Tool
+# reqkit (requirements kit)
 
 This project is intended to be a requirements management solution for software, based around traces. This project is inspired by speckit, but is intended to be more lightweight and focus just on architecture and traceability.
 
@@ -11,13 +11,13 @@ name: example requirement
 version: 0.1.0
 org: garrett.gruss@gmail.com
 ---
-- FR-nWXOLG(Slug Generation): The CLI shall generate a unique, immutable slug for each new requirement, prefixed by its requirement type.
-- FR-D025V3(Trace Discovery): The CLI shall grep the codebase for trace comments and associate each match with its corresponding requirement slug.
-- FR-oaZjGz(Report Compilation): The CLI shall compile a report linking each requirement to the use cases, code locations, and test cases that reference its slug.
-- NFR-pQ7Lks(Slug Collision Resistance): Slug generation shall not produce a collision for at least 1,000,000 requirements within a single project.
-- UC-Vt3xRz(Impact Assessment): As a developer, I want to find every place a requirement is implemented so that I can assess the impact of changing it.
-- VC-Hm9Ydw(Orphan Detection): Verify that running the report command against a project with orphaned trace comments flags them as unmatched.
-- TC-Br2Nfq(Trace Round Trip): Generate a slug, insert it as a trace comment in a sample file, run the report, and confirm the trace appears under the originating requirement.
+- FR-RQnWXOLG(Slug Generation): The CLI shall generate a unique, immutable slug for each new requirement, prefixed by its requirement type.
+- FR-RQD025V3(Trace Discovery): The CLI shall grep the codebase for trace comments and associate each match with its corresponding requirement slug.
+- FR-RQoaZjGz(Report Compilation): The CLI shall compile a report linking each requirement to the use cases, code locations, and test cases that reference its slug.
+- NFR-RQpQ7Lks(Slug Collision Resistance): Slug generation shall not produce a collision for at least 1,000,000 requirements within a single project.
+- UC-RQVt3xRz(Impact Assessment): As a developer, I want to find every place a requirement is implemented so that I can assess the impact of changing it.
+- VC-RQHm9Ydw(Orphan Detection): Verify that running the report command against a project with orphaned trace comments flags them as unmatched.
+- TC-RQBr2Nfq(Trace Round Trip): Generate a slug, insert it as a trace comment in a sample file, run the report, and confirm the trace appears under the originating requirement.
 ```
 To simplify usage, offer a cli that parses the markdown documents and adds requirements (slug generator). Could construct a lock file that stores all the slugs in usage and the seed for the project.
 2. Within each module, include the slug within a comment to inject a trace. EX:
@@ -28,52 +28,52 @@ import string
 ALPHABET = string.ascii_letters + string.digits
 
 def generate_slug(prefix: str, length: int = 6) -> str:
-    """Generate a unique, immutable slug, e.g. FR-nWXOLG."""
+    """Generate a unique, immutable slug, e.g. FR-RQnWXOLG."""
     suffix = "".join(secrets.choice(ALPHABET) for _ in range(length))
-    return f"{prefix}-{suffix}"
+    return f"{prefix}-RQ{suffix}"
 ```
 The resulting slug is then injected into the implementing module as a trace comment:
 ```python
-# trace: FR-nWXOLG
+# trace: FR-RQnWXOLG
 def generate_slug(prefix: str, length: int = 6) -> str:
     ...
 ```
 3. Grep across the code base to identify the usage of a slug. The slug could be prefixed for different components, such as FR (functional requirement), NFR (nonfunctional requirement), UC(use case), VC(verification criteria), TC(test case). 
 - the CLI could compile the various traces of the grep into a report of what your requirements are, where they are implemented, which use cases they correspond to, and how to perform tests. Effectively, the slugs become a graph that traces the code base (use cases trace to child requirements trace to code.) EX Report:
 ```bash
-user: ~/code$ req audit .
+user: ~/code$ reqkit audit .
 --------------------------------------
                Traces
 --------------------------------------
-FR-nWXOLG(Slug Generation)
+FR-RQnWXOLG(Slug Generation)
 - /src/slug_generator.py: L 10, 21
 - /src/main.py: L 3
 
-FR-D025V3(Trace Discovery)
+FR-RQD025V3(Trace Discovery)
 - /src/audit.py: L 14, 47
 
-FR-oaZjGz(Report Compilation)
+FR-RQoaZjGz(Report Compilation)
 - /src/audit.py: L 52
 
-NFR-pQ7Lks(Slug Collision Resistance)
+NFR-RQpQ7Lks(Slug Collision Resistance)
 - /src/slug_generator.py: L 28
 - /tests/test_slug_generator.py: L 9
 
-UC-Vt3xRz(Impact Assessment)
+UC-RQVt3xRz(Impact Assessment)
 - /src/audit.py: L 47
 
-VC-Hm9Ydw(Orphan Detection)
+VC-RQHm9Ydw(Orphan Detection)
 - /src/audit.py: L 60
 - /tests/test_audit.py: L 18
 
-TC-Br2Nfq(Trace Round Trip)
+TC-RQBr2Nfq(Trace Round Trip)
 - /tests/test_audit.py: L 33
 
 --------------------------------------
                Warnings
 --------------------------------------
-- UC-Vt3xRz(Impact Assessment): no VC or TC trace found
-- TC-Br2Nfq(Trace Round Trip): no UC trace found
+- UC-RQVt3xRz(Impact Assessment): no VC or TC trace found
+- TC-RQBr2Nfq(Trace Round Trip): no UC trace found
 
 6 requirements traced, 0 orphaned trace comments, 2 warnings
 ```
