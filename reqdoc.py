@@ -116,6 +116,12 @@ def get_requirements(path: Path) -> list[dict]:
 
 TRACE_EXCLUDE_DIRS = {".git", "__pycache__", "node_modules", ".venv", "venv"}
 
+# Tag types from README's "Trace Tagging Methods" — each names a different
+# edge in the requirements graph (implementation, test, deprecated, etc.).
+SPAN_TAGS = ("ref", "parent", "acceptance-criteria", "test", "deprecated", "note", "risk")
+_SPAN_OPEN = re.compile(rf"<({'|'.join(SPAN_TAGS)})\s+([^>]+)>")
+_SPAN_CLOSE = re.compile(rf"</({'|'.join(SPAN_TAGS)})>")
+
 
 def find_traces(slugs: list[str], root: Path, exclude: Path | None = None) -> dict[str, list[tuple[str, int]]]:
     traces: dict[str, list[tuple[str, int]]] = {slug: [] for slug in slugs}
@@ -138,7 +144,65 @@ def find_traces(slugs: list[str], root: Path, exclude: Path | None = None) -> di
     return traces
 
 
-def build_matrix(requirements: list[dict], traces: dict[str, list[tuple[str, int]]]) -> str:
+def find_span_traces(root: Path, exclude: Path | None = None) -> list[dict]:
+    """Scan files for `<tag slug,...> ... </tag>` span traces and capture their content."""
+    spans: list[dict] = []
+    exclude = exclude.resolve() if exclude else None
+    for file_path in root.rglob("*"):
+        if not file_path.is_file():
+            continue
+        if any(part in TRACE_EXCLUDE_DIRS for part in file_path.parts):
+            continue
+        if exclude is not None and file_path.resolve() == exclude:
+            continue
+        try:
+            text = file_path.read_text(errors="ignore")
+        except OSError:
+            continue
+        rel = str(file_path.relative_to(root))
+        open_spans: list[dict] = []  # stack of unclosed spans, LIFO per tag name
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            offset = 0
+            while True:
+                open_m = _SPAN_OPEN.search(line, offset)
+                close_m = _SPAN_CLOSE.search(line, offset)
+                if open_m and (not close_m or open_m.start() <= close_m.start()):
+                    if open_spans:
+                        open_spans[-1]["content"].append(line[offset:open_m.start()])
+                    slugs = [s.strip() for s in open_m.group(2).split(",") if s.strip()]
+                    open_spans.append(
+                        {"tag": open_m.group(1), "slugs": slugs, "start_line": lineno, "content": []}
+                    )
+                    offset = open_m.end()
+                    continue
+                if close_m:
+                    if open_spans:
+                        open_spans[-1]["content"].append(line[offset:close_m.start()])
+                    tag = close_m.group(1)
+                    idx = next(
+                        (i for i in range(len(open_spans) - 1, -1, -1) if open_spans[i]["tag"] == tag), None
+                    )
+                    if idx is not None:
+                        span = open_spans.pop(idx)
+                        spans.append(
+                            {
+                                "tag": span["tag"],
+                                "slugs": span["slugs"],
+                                "file": rel,
+                                "start_line": span["start_line"],
+                                "end_line": lineno,
+                                "content": "\n".join(span["content"]).strip("\n"),
+                            }
+                        )
+                    offset = close_m.end()
+                    continue
+                if open_spans:
+                    open_spans[-1]["content"].append(line[offset:])
+                break
+    return spans
+
+
+def build_matrix(requirements: list[dict], traces: dict[str, list]) -> str:
     lines = ["# Verification Matrix", ""]
     orphaned = []
     for req in requirements:
@@ -146,8 +210,16 @@ def build_matrix(requirements: list[dict], traces: dict[str, list[tuple[str, int
         locations = traces.get(slug, [])
         lines.append(f"## {slug}({req['name']})")
         if locations:
-            for file, lineno in locations:
-                lines.append(f"- {file}: L{lineno}")
+            for loc in locations:
+                if isinstance(loc, dict):
+                    lines.append(f"- {loc['file']}: L{loc['start_line']}-L{loc['end_line']} ({loc['tag']})")
+                    if loc["content"]:
+                        lines.append("  ```")
+                        lines.extend(f"  {content_line}" for content_line in loc["content"].splitlines())
+                        lines.append("  ```")
+                else:
+                    file, lineno = loc
+                    lines.append(f"- {file}: L{lineno}")
         else:
             lines.append("- _no trace found_")
             orphaned.append(slug)
@@ -167,7 +239,12 @@ def build_matrix(requirements: list[dict], traces: dict[str, list[tuple[str, int
 
 def trace_requirements(doc_path: Path, root: Path) -> str:
     requirements = get_requirements(doc_path)
-    traces = find_traces([req["slug"] for req in requirements], root, exclude=doc_path)
+    slugs = [req["slug"] for req in requirements]
+    traces: dict[str, list] = {slug: list(locs) for slug, locs in find_traces(slugs, root, exclude=doc_path).items()}
+    for span in find_span_traces(root, exclude=doc_path):
+        for slug in span["slugs"]:
+            if slug in traces:
+                traces[slug].append(span)
     return build_matrix(requirements, traces)
 
 
