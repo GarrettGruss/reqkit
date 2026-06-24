@@ -11,13 +11,13 @@ name: example requirement
 version: 0.1.0
 org: garrett.gruss@gmail.com
 ---
-- FR-RQnWXOLG(Slug Generation): The CLI shall generate a unique, immutable slug for each new requirement, prefixed by its requirement type.
-- FR-RQD025V3(Trace Discovery): The CLI shall grep the codebase for trace comments and associate each match with its corresponding requirement slug.
-- FR-RQoaZjGz(Report Compilation): The CLI shall compile a report linking each requirement to the use cases, code locations, and test cases that reference its slug.
-- NFR-RQpQ7Lks(Slug Collision Resistance): Slug generation shall not produce a collision for at least 1,000,000 requirements within a single project.
-- UC-RQVt3xRz(Impact Assessment): As a developer, I want to find every place a requirement is implemented so that I can assess the impact of changing it.
-- VC-RQHm9Ydw(Orphan Detection): Verify that running the report command against a project with orphaned trace comments flags them as unmatched.
-- TC-RQBr2Nfq(Trace Round Trip): Generate a slug, insert it as a trace comment in a sample file, run the report, and confirm the trace appears under the originating requirement.
+- **FR-RQnWXOLG(Slug Generation)**: The CLI shall generate a unique, immutable slug for each new requirement, prefixed by its requirement type.
+- **FR-RQD025V3(Trace Discovery)**: The CLI shall grep the codebase for trace comments and associate each match with its corresponding requirement slug.
+- **FR-RQoaZjGz(Report Compilation)**: The CLI shall compile a report linking each requirement to the use cases, code locations, and test cases that reference its slug.
+- **NFR-RQpQ7Lks(Slug Collision Resistance)**: Slug generation shall not produce a collision for at least 1,000,000 requirements within a single project.
+- **UC-RQVt3xRz(Impact Assessment)**: As a developer, I want to find every place a requirement is implemented so that I can assess the impact of changing it.
+- **VC-RQHm9Ydw(Orphan Detection)**: Verify that running the report command against a project with orphaned trace comments flags them as unmatched.
+- **TC-RQBr2Nfq(Trace Round Trip)**: Generate a slug, insert it as a trace comment in a sample file, run the report, and confirm the trace appears under the originating requirement.
 ```
 To simplify usage, offer a cli that parses the markdown documents and adds requirements (slug generator). Could construct a lock file that stores all the slugs in usage and the seed for the project.
 2. Within each module, include the slug within a comment to inject a trace. EX:

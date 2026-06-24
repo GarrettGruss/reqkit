@@ -17,7 +17,27 @@ import string
 from pathlib import Path
 
 ALPHABET = string.ascii_letters + string.digits
-ITEM_PATTERN = re.compile(r"^-\s+([A-Za-z]+)-([A-Za-z0-9]+)\(([^)]*)\):\s*(.*)$")
+
+# Order matters: NFR must be tried before FR since "NFR" starts with "F" at
+# index 1 — listing the longer prefix first keeps alternation unambiguous.
+PREFIXES = ("NFR", "FR", "UC", "VC", "TC")
+
+# A requirement line may be wrapped in list/heading/emphasis markup
+# (e.g. "- **FR-RQxxxx(Name): desc**" or "## FR-RQxxxx(Name): desc"), so the
+# pattern tolerates an optional list marker or heading prefix and optional
+# emphasis marks around the slug rather than requiring plain "- " text.
+_LEADING = r"^\s*(?:[-*+]\s+|#{1,6}\s+)?[*_~]{0,2}"
+_TRAILING = r"[*_~]{0,2}:\s*(.*)$"
+
+
+def _build_pattern(prefix: str) -> re.Pattern:
+    return re.compile(rf"{_LEADING}{prefix}-([A-Za-z0-9]+)\(([^)]*)\){_TRAILING}")
+
+
+PREFIX_PATTERNS = {prefix: _build_pattern(prefix) for prefix in PREFIXES}
+ITEM_PATTERN = re.compile(
+    rf"{_LEADING}({'|'.join(PREFIXES)})-([A-Za-z0-9]+)\(([^)]*)\){_TRAILING}"
+)
 
 
 def generate_slug(prefix: str, length: int = 6) -> str:
