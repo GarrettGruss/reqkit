@@ -116,6 +116,16 @@ def get_requirements(path: Path) -> list[dict]:
 
 TRACE_EXCLUDE_DIRS = {".git", "__pycache__", "node_modules", ".venv", "venv"}
 
+
+def find_project_root(start: Path | None = None) -> Path:
+    """Walk up from `start` (default cwd) looking for a `.git` directory."""
+    start = (start or Path.cwd()).resolve()
+    for candidate in (start, *start.parents):
+        if (candidate / ".git").exists():
+            return candidate
+    return start
+
+
 # Tag types from README's "Trace Tagging Methods" — each names a different
 # edge in the requirements graph (implementation, test, deprecated, etc.).
 SPAN_TAGS = ("ref", "parent", "acceptance-criteria", "test", "deprecated", "note", "risk")
@@ -205,10 +215,19 @@ def find_span_traces(root: Path, exclude: Path | None = None) -> list[dict]:
 def build_matrix(requirements: list[dict], traces: dict[str, list]) -> str:
     lines = ["# Verification Matrix", ""]
     orphaned = []
+    total_traces = 0
     for req in requirements:
         slug = req["slug"]
         locations = traces.get(slug, [])
-        lines.append(f"## {slug}({req['name']})")
+        span_count = sum(1 for loc in locations if isinstance(loc, dict))
+        simple_count = len(locations) - span_count
+        total_traces += len(locations)
+        if locations:
+            lines.append(
+                f"## {slug}({req['name']}) — {len(locations)} trace(s) ({simple_count} simple, {span_count} span)"
+            )
+        else:
+            lines.append(f"## {slug}({req['name']})")
         if locations:
             for loc in locations:
                 if isinstance(loc, dict):
@@ -227,7 +246,10 @@ def build_matrix(requirements: list[dict], traces: dict[str, list]) -> str:
 
     lines.append("---")
     lines.append("")
-    lines.append(f"{len(requirements)} requirements traced, {len(orphaned)} orphaned requirement(s)")
+    lines.append(
+        f"{len(requirements)} requirements traced, {total_traces} trace(s) found, "
+        f"{len(orphaned)} orphaned requirement(s)"
+    )
     if orphaned:
         lines.append("")
         lines.append("Orphaned requirements (no trace found):")
@@ -266,9 +288,12 @@ def _cmd_info(args: argparse.Namespace) -> None:
 
 
 def _cmd_trace(args: argparse.Namespace) -> None:
-    matrix = trace_requirements(Path(args.path), Path(args.root))
-    Path(args.output).write_text(matrix)
-    print(f"Wrote {args.output}")
+    root = Path(args.root) if args.root else find_project_root()
+    matrix = trace_requirements(Path(args.path), root)
+    if args.output:
+        Path(args.output).write_text(matrix)
+    else:
+        print(matrix, end="")
 
 
 def main() -> None:
@@ -298,9 +323,14 @@ def main() -> None:
     trace_parser = subparsers.add_parser(
         "trace", help="Grep the codebase for requirement traces and build a verification matrix"
     )
-    trace_parser.add_argument("path")
-    trace_parser.add_argument("--output", required=True, help="Path to write the verification matrix")
-    trace_parser.add_argument("--root", default=".", help="Directory to recursively search for trace comments")
+    trace_parser.add_argument("path", help="Path to the requirements document")
+    trace_parser.add_argument(
+        "root",
+        nargs="?",
+        default=None,
+        help="Directory to recursively search for trace comments (default: nearest ancestor containing .git)",
+    )
+    trace_parser.add_argument("--output", help="Optional path to write the verification matrix instead of stdout")
     trace_parser.set_defaults(func=_cmd_trace)
 
     args = parser.parse_args()
