@@ -34,11 +34,14 @@ Reqkit objects will take the form of various sysml objects. This will enable the
     * `sr` (stakeholder requirement), 
 - Category is an optional field that users can specify, such as `User interface`, `Data management`, `Integration` to seperate their design into domains. The parser can optional filter/sort a trace by these categories. The parser should lowercase and remove whitespace when validating this field.
 - `parent_rel` is an optional field that defines the relationship of the element relative to it's parent.
-    * `trace` - default and assumed value if null
-    * `satisfy` - a dependency towards a parent requirement
-    * `verify` - 
 
-
+| Relation | Description |
+| --- | --- |
+| **Satisfy** | A dependency between a requirement and a model element (code, design) that fulfills it. |
+| **Derive** | A dependency between two requirements, where a derived requirement is generated or inferred from a source requirement. |
+| **Trace** | A dependency between a requirement and an arbitrary model element traced by that requirement, without implying satisfaction or verification — a looser link than `Satisfy`. |
+| **Verify** | A dependency between a requirement and a test case (or other element) that can determine whether the system fulfills it. The arrow points from the (client) test case to the (supplier) requirement. |
+| **Refine** | Describes how a model element (or set of elements) refines a requirement — e.g. a use case or activity diagram refining a text-based functional requirement, or elaborated text refining a coarser-grained model element. |
 
 ### Traces
 
@@ -47,20 +50,24 @@ Reqkit objects will take the form of various sysml objects. This will enable the
 - Traces are reqkit objects that exist to establish an edge within the requirement graph. They can serve as references to guidelines, design docs, or source code implementation of a requirement. They do not need an ID
 - inherits the parent_rel rules of requirements.
 
-## References
+## CLI
 
+- `rq mint --type <rq_types> --category <rq_categories> --parent_id <rq_id> --parent_rel <rq_rels>`: Creates a new element with a minted tag. All fields are optional. Outputs to Cli
+- `rq trace --root <rq_id>|<filename> --type <rq_types> --category <rq_categories> --scope<dir>`: Outputs a trace to stdio. returns a report detailing the number of each type of element traces, and the same metrics for master element. Verifies compliance (compliant, partially-compliant, non-compliant)
+    * root is the required origin IDs to performe the trace against. This option is either an rq_id or a filename. Check first if it is a rq_id type, then fallback to filename.
+    * type and category are optional filters to restrict the trace to this type of origin element types/categories
+    * scope is an optional directory filter to restrict the trace.
 
-Beyond tracing a requirement to the code that implements it, requirements can relate to *each other* and to other model elements (use cases, tests, diagrams). The following relation types (borrowed from SysML) describe the different kinds of edges in that graph:
+### Trace
+The trace function is the primary feature of reqkit - the ability to perform a deep recursive trace amongst the code base to asses compliance or drift against a requirement.
 
-| Relation | Description |
-| --- | --- |
-| **Satisfy** | A dependency between a requirement and a model element (code, design) that fulfills it. The arrow points from the satisfying (client) element to the (supplier) requirement being satisfied — this is the relation today's `# trace: <slug>` comments and `<ref>` tags approximate. |
-| **Derive** | A dependency between two requirements, where a derived requirement is generated or inferred from a source requirement (e.g. a phase-2 requirement that exists because of a phase-1 decision). |
-| **Copy** | A dependency between a supplier requirement (master) and a client requirement (slave), where the client's text is a read-only copy of the supplier's text — useful when the same requirement needs to appear in more than one document without forking its wording. |
-| **Trace** | A dependency between a requirement and an arbitrary model element traced by that requirement, without implying satisfaction or verification — a looser link than `Satisfy`. |
-| **Verify** | A dependency between a requirement and a test case (or other element) that can determine whether the system fulfills it. The arrow points from the (client) test case to the (supplier) requirement — this maps to the `<test>` tag and `TC`/`VC` slugs. |
-| **Refine** | Describes how a model element (or set of elements) refines a requirement — e.g. a use case or activity diagram refining a text-based functional requirement, or elaborated text refining a coarser-grained model element. |
-
-This is a design note only — these relation types are not implemented yet; today's slug graph only expresses `Satisfy`-like traces via prefix and tag.
-
-
+- user calls `rq trace --root <rq_id>|<filename> --type <rq_types> --category <rq_categories> --scope<dir>`
+- if no scope is specified, tracer walks upwards to the .git dir, assume this is root of the project
+- Tracer recursively walks the project, constructing a dictonary of `{<parent_id>:List[<rq_obj>]}`
+> note: both `<rq_trace>` and `<rq_req>` should inherit from the base `<rq_obj>` class
+> note: set an internal recursion limit in the ENV
+- tracer walks the root document and constructs a list of origin elements. If an element does not satisfy the optional category or type filter, do not add it
+- sort the origin elements list
+- loop through the elements and map them to trace dictonary, constructing a trace object - need to define this as a dataclass
+- Call the report function to dump the trace object to text
+- print to stdio
