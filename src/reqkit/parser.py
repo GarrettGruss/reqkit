@@ -14,7 +14,7 @@ _TAG_CLASSES = {
 }
 
 _TAG_PATTERN = re.compile(
-    r"<(" + "|".join(_TAG_CLASSES) + r")\b[^>]*?(?:/>|>.*?</\1>)", re.DOTALL
+    r"<(" + "|".join(_TAG_CLASSES) + r")\b([^>]*?)(?:/>|>(.*?)</\1>)", re.DOTALL
 )
 
 
@@ -22,24 +22,27 @@ def parse_str(text: str) -> List[ReqkitBase]:
     """Parse rq- tags out of a raw string into reqkit objects.
 
     Tags are extracted from the surrounding non-xml text individually, since
-    the source document as a whole is not valid XML. Tags that fail to parse
-    as XML, or fail reqkit validation, are skipped.
+    the source document as a whole is not valid XML. Only the opening tag's
+    attributes are run through the XML parser; the body is kept as raw text,
+    since it may be arbitrary source code containing unescaped `&`/`<`. Tags
+    whose attributes fail to parse as XML, or fail reqkit validation, are
+    skipped.
     """
 
     objs: List[ReqkitBase] = []
     for match in _TAG_PATTERN.finditer(text):
-        raw = match.group(0)
+        tag, attrs, body = match.group(1), match.group(2), match.group(3)
 
         try:
-            elem = ET.fromstring(raw)
+            elem = ET.fromstring(f"<{tag}{attrs}/>")
         except ET.ParseError as e:
-            print(f"Skipping tag that failed xml parsing: {raw!r} ({e})")
+            print(f"Skipping tag that failed xml parsing: {match.group(0)!r} ({e})")
             continue
 
         try:
-            objs.append(_TAG_CLASSES[elem.tag](body=elem.text, **elem.attrib))
+            objs.append(_TAG_CLASSES[tag](body=body, **elem.attrib))
         except ValidationError as e:
-            print(f"Skipping tag that failed validation: {raw!r} ({e})")
+            print(f"Skipping tag that failed validation: {match.group(0)!r} ({e})")
             continue
 
     return objs
