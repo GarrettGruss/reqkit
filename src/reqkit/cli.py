@@ -23,13 +23,13 @@ def _cmd_mint(args: argparse.Namespace) -> None:
         parent_id=args.parent_id,
         parent_rel=args.parent_rel,
     )
-    print(params.model_dump_json())
     objs = [
         ReqkitRequirement(
             subtype=params.subtype,
             category=params.category,
             parent_id=params.parent_id,
             parent_rel=params.parent_rel,
+            body="my requirement",
         )
         for _ in range(int(params.qty))
     ]
