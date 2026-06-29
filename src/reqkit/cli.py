@@ -1,7 +1,7 @@
 """CLI for reqkit."""
 
 import argparse
-from reqkit.mint import mint_requirements
+from reqkit.types import ReqkitRequirement
 from pydantic import BaseModel, PositiveInt
 from typing import Optional
 
@@ -24,13 +24,15 @@ def _cmd_mint(args: argparse.Namespace) -> None:
         parent_rel=args.parent_rel,
     )
     print(params.model_dump_json())
-    objs = mint_requirements(
-        int(params.qty),
-        params.subtype,
-        category=params.category,
-        parent_id=params.parent_id,
-        parent_rel=params.parent_rel,
-    )
+    objs = [
+        ReqkitRequirement(
+            subtype=params.subtype,
+            category=params.category,
+            parent_id=params.parent_id,
+            parent_rel=params.parent_rel,
+        )
+        for _ in range(int(params.qty))
+    ]
 
     print(f"Minted {len(objs)} requirement(s)")
     print("==================================")
