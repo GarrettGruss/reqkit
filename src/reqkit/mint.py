@@ -5,7 +5,9 @@ from reqkit.types import ReqkitRequirement
 from reqkit.config import Config
 from typing import Optional
 
-
+# Consider removing this class entirely and folding into types.py
+# If ID is ommited for a reqkit requirement, just mint a new token
+# then the mint class just becomes a simple token generator
 def mint_requirements(
     qty: int,
     subtype: Optional[str],
