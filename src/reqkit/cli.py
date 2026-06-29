@@ -1,6 +1,7 @@
 """CLI for reqkit."""
 
 import argparse
+from reqkit.parser import parse_str
 from reqkit.types import ReqkitRequirement
 from pydantic import BaseModel, PositiveInt
 from typing import Optional
@@ -38,6 +39,14 @@ def _cmd_mint(args: argparse.Namespace) -> None:
         print(str(obj))
 
 
+def _cmd_parse(args: argparse.Namespace) -> None:
+    with open(args.file) as f:
+        objs = parse_str(f.read())
+
+    for obj in objs:
+        print(str(obj))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Scaffold and manage requirement traces"
@@ -53,6 +62,12 @@ def main() -> None:
     mint_parser.add_argument("--parent_rel")
     mint_parser.add_argument("--qty", type=int, default=1)
     mint_parser.set_defaults(func=_cmd_mint)
+
+    parse_parser = subparsers.add_parser(
+        "parse", help="Parse rq- tags out of a file"
+    )
+    parse_parser.add_argument("file")
+    parse_parser.set_defaults(func=_cmd_parse)
 
     args = parser.parse_args()
     args.func(args)
