@@ -6,22 +6,22 @@ from typing import Optional
 class ReqkitBase:
     """Reqkit base class."""
 
-    rq_type: Optional[str]
+    subtype: Optional[str]
     category: Optional[str]
     parent_id: Optional[str]
     parent_rel: Optional[str]
+    body: Optional[str]
 
     def __str__(self):
         return (
-            "<rq-element" + f' type="{self.rq_type}"'
-            if self.rq_type
-            else "" + f' category="{self.category}"'
-            if self.category
-            else "" + f' parent_id="{self.parent_id}"'
-            if self.parent_id
-            else "" + f' parent_rel="{self.parent_rel}"'
-            if self.parent_rel
-            else "" + "></rq-element>"
+            "<rq-element"
+            + (f' subtype="{self.subtype}"' if self.subtype else "")
+            + (f' category="{self.category}"' if self.category else "")
+            + (f' parent_id="{self.parent_id}"' if self.parent_id else "")
+            + (f' parent_rel="{self.parent_rel}"' if self.parent_rel else "")
+            + ">"
+            + (self.body if self.body else "")
+            + "</rq-element>"
         )
 
 
@@ -33,15 +33,15 @@ class ReqkitRequirement(ReqkitBase):
 
     def __str__(self):
         return (
-            "<rq-req" + f' id="{self.id}"' + f' type="{self.rq_type}"'
-            if self.rq_type
-            else "" + f' category="{self.category}"'
-            if self.category
-            else "" + f' parent_id="{self.parent_id}"'
-            if self.parent_id
-            else "" + f' parent_rel="{self.parent_rel}"'
-            if self.parent_rel
-            else "" + "></rq-req>"
+            "<rq-req"
+            + (f' id="{self.id}')
+            + (f' subtype="{self.subtype}"' if self.subtype else "")
+            + (f' category="{self.category}"' if self.category else "")
+            + (f' parent_id="{self.parent_id}"' if self.parent_id else "")
+            + (f' parent_rel="{self.parent_rel}"' if self.parent_rel else "")
+            + ">"
+            + (self.body if self.body else "")
+            + "</rq-req>"
         )
 
 
@@ -51,13 +51,12 @@ class ReqkitTrace(ReqkitBase):
 
     def __str__(self):
         return (
-            "<rq-trace" + f' type="{self.rq_type}"'
-            if self.rq_type
-            else "" + f' category="{self.category}"'
-            if self.category
-            else "" + f' parent_id="{self.parent_id}"'
-            if self.parent_id
-            else "" + f' parent_rel="{self.parent_rel}"'
-            if self.parent_rel
-            else "" + "></rq-trace>"
+            "<rq-element"
+            + (f' subtype="{self.subtype}"' if self.subtype else "")
+            + (f' category="{self.category}"' if self.category else "")
+            + (f' parent_id="{self.parent_id}"' if self.parent_id else "")
+            + (f' parent_rel="{self.parent_rel}"' if self.parent_rel else "")
+            + ">"
+            + (self.body if self.body else "")
+            + "</rq-element>"
         )

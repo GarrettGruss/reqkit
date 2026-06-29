@@ -52,8 +52,8 @@ Reqkit objects will take the form of various sysml objects. This will enable the
 
 ## CLI
 
-- `rq mint --type <rq_types> --category <rq_categories> --parent_id <rq_id> --parent_rel <rq_rels>`: Creates a new element with a minted tag. All fields are optional. Outputs to Cli
-- `rq trace --root <rq_id>|<filename> --type <rq_types> --category <rq_categories> --scope <dir> --qty <int>`: Outputs a trace to stdio. returns a report detailing the number of each type of element traces, and the same metrics for master element. Verifies compliance (compliant, partially-compliant, non-compliant)
+- `rq mint --type <subtypes> --category <rq_categories> --parent_id <rq_id> --parent_rel <rq_rels>`: Creates a new element with a minted tag. All fields are optional. Outputs to Cli
+- `rq trace --root <rq_id>|<filename> --type <subtypes> --category <rq_categories> --scope <dir> --qty <int>`: Outputs a trace to stdio. returns a report detailing the number of each type of element traces, and the same metrics for master element. Verifies compliance (compliant, partially-compliant, non-compliant)
     * root is the required origin IDs to performe the trace against. This option is either an rq_id or a filename. Check first if it is a rq_id type, then fallback to filename.
     * type and category are optional filters to restrict the trace to this type of origin element types/categories
     * scope is an optional directory filter to restrict the trace.
@@ -62,7 +62,7 @@ Reqkit objects will take the form of various sysml objects. This will enable the
 ### Trace
 The trace function is the primary feature of reqkit - the ability to perform a deep recursive trace amongst the code base to asses compliance or drift against a requirement.
 
-- user calls `rq trace --root <rq_id>|<filename> --type <rq_types> --category <rq_categories> --scope<dir>`
+- user calls `rq trace --root <rq_id>|<filename> --type <subtypes> --category <rq_categories> --scope<dir>`
 - if no scope is specified, tracer walks upwards to the .git dir, assume this is root of the project
 - Tracer recursively walks the project, constructing a dictonary of `{<parent_id>:List[<rq_obj>]}`
 > note: both `<rq_trace>` and `<rq_req>` should inherit from the base `<rq_obj>` class
