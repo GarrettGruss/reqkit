@@ -14,6 +14,18 @@ def test_parses_valid_requirement_tag():
     assert objs[0].category == "my_cat"
     assert objs[0].body == "do the thing"
 
+def test_parses_special_characters():
+    text = '<rq-req id="3a5cf8" subtype="fr" category="my_cat">x = 4 // 2 if 4 > 2 else x = 2</rq-req>'
+
+    objs = parse_str(text)
+
+    assert len(objs) == 1
+    assert isinstance(objs[0], ReqkitRequirement)
+    assert objs[0].id == "3a5cf8"
+    assert objs[0].subtype == "fr"
+    assert objs[0].category == "my_cat"
+    assert objs[0].body == "x = 4 // 2 if 4 > 2 else x = 2"
+
 
 def test_parses_valid_trace_tag():
     text = '<rq-trace parent_id="3a5cf8" parent_rel="derive">trace body</rq-trace>'
