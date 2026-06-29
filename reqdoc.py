@@ -48,13 +48,7 @@ def generate_slug(prefix: str, length: int = 6) -> str:
 def create_document(path: Path, type_: str, name: str, version: str, org: str) -> None:
     if path.exists():
         raise FileExistsError(f"{path} already exists")
-    header = (
-        f"type: {type_}\n"
-        f"name: {name}\n"
-        f"version: {version}\n"
-        f"org: {org}\n"
-        "---\n"
-    )
+    header = f"type: {type_}\nname: {name}\nversion: {version}\norg: {org}\n---\n"
     path.write_text(header)
 
 
@@ -128,12 +122,22 @@ def find_project_root(start: Path | None = None) -> Path:
 
 # Tag types from README's "Trace Tagging Methods" — each names a different
 # edge in the requirements graph (implementation, test, deprecated, etc.).
-SPAN_TAGS = ("ref", "parent", "acceptance-criteria", "test", "deprecated", "note", "risk")
+SPAN_TAGS = (
+    "ref",
+    "parent",
+    "acceptance-criteria",
+    "test",
+    "deprecated",
+    "note",
+    "risk",
+)
 _SPAN_OPEN = re.compile(rf"<({'|'.join(SPAN_TAGS)})\s+([^>]+)>")
 _SPAN_CLOSE = re.compile(rf"</({'|'.join(SPAN_TAGS)})>")
 
 
-def find_traces(slugs: list[str], root: Path, exclude: Path | None = None) -> dict[str, list[tuple[str, int]]]:
+def find_traces(
+    slugs: list[str], root: Path, exclude: Path | None = None
+) -> dict[str, list[tuple[str, int]]]:
     traces: dict[str, list[tuple[str, int]]] = {slug: [] for slug in slugs}
     exclude = exclude.resolve() if exclude else None
     for file_path in root.rglob("*"):
@@ -178,19 +182,29 @@ def find_span_traces(root: Path, exclude: Path | None = None) -> list[dict]:
                 close_m = _SPAN_CLOSE.search(line, offset)
                 if open_m and (not close_m or open_m.start() <= close_m.start()):
                     if open_spans:
-                        open_spans[-1]["content"].append(line[offset:open_m.start()])
+                        open_spans[-1]["content"].append(line[offset : open_m.start()])
                     slugs = [s.strip() for s in open_m.group(2).split(",") if s.strip()]
                     open_spans.append(
-                        {"tag": open_m.group(1), "slugs": slugs, "start_line": lineno, "content": []}
+                        {
+                            "tag": open_m.group(1),
+                            "slugs": slugs,
+                            "start_line": lineno,
+                            "content": [],
+                        }
                     )
                     offset = open_m.end()
                     continue
                 if close_m:
                     if open_spans:
-                        open_spans[-1]["content"].append(line[offset:close_m.start()])
+                        open_spans[-1]["content"].append(line[offset : close_m.start()])
                     tag = close_m.group(1)
                     idx = next(
-                        (i for i in range(len(open_spans) - 1, -1, -1) if open_spans[i]["tag"] == tag), None
+                        (
+                            i
+                            for i in range(len(open_spans) - 1, -1, -1)
+                            if open_spans[i]["tag"] == tag
+                        ),
+                        None,
                     )
                     if idx is not None:
                         span = open_spans.pop(idx)
@@ -231,10 +245,15 @@ def build_matrix(requirements: list[dict], traces: dict[str, list]) -> str:
         if locations:
             for loc in locations:
                 if isinstance(loc, dict):
-                    lines.append(f"- {loc['file']}: L{loc['start_line']}-L{loc['end_line']} ({loc['tag']})")
+                    lines.append(
+                        f"- {loc['file']}: L{loc['start_line']}-L{loc['end_line']} ({loc['tag']})"
+                    )
                     if loc["content"]:
                         lines.append("  ```")
-                        lines.extend(f"  {content_line}" for content_line in loc["content"].splitlines())
+                        lines.extend(
+                            f"  {content_line}"
+                            for content_line in loc["content"].splitlines()
+                        )
                         lines.append("  ```")
                 else:
                     file, lineno = loc
@@ -262,7 +281,10 @@ def build_matrix(requirements: list[dict], traces: dict[str, list]) -> str:
 def trace_requirements(doc_path: Path, root: Path) -> str:
     requirements = get_requirements(doc_path)
     slugs = [req["slug"] for req in requirements]
-    traces: dict[str, list] = {slug: list(locs) for slug, locs in find_traces(slugs, root, exclude=doc_path).items()}
+    traces: dict[str, list] = {
+        slug: list(locs)
+        for slug, locs in find_traces(slugs, root, exclude=doc_path).items()
+    }
     for span in find_span_traces(root, exclude=doc_path):
         for slug in span["slugs"]:
             if slug in traces:
@@ -276,7 +298,9 @@ def _cmd_init(args: argparse.Namespace) -> None:
 
 
 def _cmd_add(args: argparse.Namespace) -> None:
-    slugs = add_requirement(Path(args.path), args.prefix, args.name, args.description, args.qty)
+    slugs = add_requirement(
+        Path(args.path), args.prefix, args.name, args.description, args.qty
+    )
     for slug in slugs:
         print(slug)
 
@@ -297,10 +321,14 @@ def _cmd_trace(args: argparse.Namespace) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Scaffold and manage requirements .md documents")
+    parser = argparse.ArgumentParser(
+        description="Scaffold and manage requirements .md documents"
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    init_parser = subparsers.add_parser("init", help="Create a new requirements document")
+    init_parser = subparsers.add_parser(
+        "init", help="Create a new requirements document"
+    )
     init_parser.add_argument("path")
     init_parser.add_argument("--type", default="requirement")
     init_parser.add_argument("--name", required=True)
@@ -308,12 +336,16 @@ def main() -> None:
     init_parser.add_argument("--org", required=True)
     init_parser.set_defaults(func=_cmd_init)
 
-    add_parser = subparsers.add_parser("add", help="Append a new requirement to a document")
+    add_parser = subparsers.add_parser(
+        "add", help="Append a new requirement to a document"
+    )
     add_parser.add_argument("path")
     add_parser.add_argument("--prefix", required=True, help="e.g. FR, NFR, UC, VC, TC")
     add_parser.add_argument("--name", default="requirement name")
     add_parser.add_argument("--description", default="requirement text")
-    add_parser.add_argument("--qty", type=int, default=1, help="number of requirements to add")
+    add_parser.add_argument(
+        "--qty", type=int, default=1, help="number of requirements to add"
+    )
     add_parser.set_defaults(func=_cmd_add)
 
     info_parser = subparsers.add_parser("info", help="Show metadata about a document")
@@ -321,7 +353,8 @@ def main() -> None:
     info_parser.set_defaults(func=_cmd_info)
 
     trace_parser = subparsers.add_parser(
-        "trace", help="Grep the codebase for requirement traces and build a verification matrix"
+        "trace",
+        help="Grep the codebase for requirement traces and build a verification matrix",
     )
     trace_parser.add_argument("path", help="Path to the requirements document")
     trace_parser.add_argument(
@@ -330,7 +363,10 @@ def main() -> None:
         default=None,
         help="Directory to recursively search for trace comments (default: nearest ancestor containing .git)",
     )
-    trace_parser.add_argument("--output", help="Optional path to write the verification matrix instead of stdout")
+    trace_parser.add_argument(
+        "--output",
+        help="Optional path to write the verification matrix instead of stdout",
+    )
     trace_parser.set_defaults(func=_cmd_trace)
 
     args = parser.parse_args()

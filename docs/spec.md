@@ -53,10 +53,11 @@ Reqkit objects will take the form of various sysml objects. This will enable the
 ## CLI
 
 - `rq mint --type <rq_types> --category <rq_categories> --parent_id <rq_id> --parent_rel <rq_rels>`: Creates a new element with a minted tag. All fields are optional. Outputs to Cli
-- `rq trace --root <rq_id>|<filename> --type <rq_types> --category <rq_categories> --scope<dir>`: Outputs a trace to stdio. returns a report detailing the number of each type of element traces, and the same metrics for master element. Verifies compliance (compliant, partially-compliant, non-compliant)
+- `rq trace --root <rq_id>|<filename> --type <rq_types> --category <rq_categories> --scope <dir> --qty <int>`: Outputs a trace to stdio. returns a report detailing the number of each type of element traces, and the same metrics for master element. Verifies compliance (compliant, partially-compliant, non-compliant)
     * root is the required origin IDs to performe the trace against. This option is either an rq_id or a filename. Check first if it is a rq_id type, then fallback to filename.
     * type and category are optional filters to restrict the trace to this type of origin element types/categories
     * scope is an optional directory filter to restrict the trace.
+    * qty is the number of objects to mint (repeats using the same input params)
 
 ### Trace
 The trace function is the primary feature of reqkit - the ability to perform a deep recursive trace amongst the code base to asses compliance or drift against a requirement.

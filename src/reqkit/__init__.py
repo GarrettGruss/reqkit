@@ -1,2 +1,5 @@
+from reqkit import cli
+
+
 def main() -> None:
-    print("Hello from reqkit!")
+    cli.main()
