@@ -18,7 +18,7 @@ class ReqkitBase(BaseModel):
 
     subtype: Optional[str] = None
     category: Optional[str] = None
-    parent_id: Optional[str] = None
+    parent_id: Optional[str] = None # for v2, convert the parent_id into a list of ids
     parent_rel: Optional[str] = None
     body: Optional[str] = None
 
