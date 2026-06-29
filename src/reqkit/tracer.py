@@ -17,13 +17,21 @@ class Tracer:
             trace_map.setdefault(obj.parent_id, []).append(obj)
         return trace_map
 
-    def construct_report(self, trace_map: Dict[Optional[str], List[ReqkitBase]]) -> str:
+    def construct_report(
+        self,
+        trace_map: Dict[Optional[str], List[ReqkitBase]],
+        include_requirement_body: bool = True,
+        include_trace_body: bool = True,
+    ) -> str:
         """Render a compliance report by mapping over a hash map built by build_map.
 
         Each requirement is reported as non-compliant (no traces),
         partially-compliant (traces exist, but none satisfy/verify it), or
         compliant (at least one satisfy/verify trace). Traces that aren't
         attached to any requirement are counted separately as orphaned.
+
+        include_requirement_body/include_trace_body control whether each
+        requirement's/trace's body text is included in the rendered report.
         """
 
         def report_lines(requirement: ReqkitRequirement, depth: int = 0) -> List[str]:
@@ -40,8 +48,9 @@ class Tracer:
                 status = "partially-compliant"
 
             indent = "  " * depth
-            lines = [f"{indent}{requirement} — {status} ({len(traces)} trace(s))"]
-            lines += [f"{indent}  - {t}" for t in traces]
+            requirement_str = requirement.render(include_requirement_body)
+            lines = [f"{indent}{requirement_str} — {status} ({len(traces)} trace(s))"]
+            lines += [f"{indent}  - {t.render(include_trace_body)}" for t in traces]
             lines += [
                 line
                 for sub_lines in map(lambda r: report_lines(r, depth + 1), sub_requirements)

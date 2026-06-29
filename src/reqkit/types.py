@@ -42,14 +42,17 @@ class ReqkitBase(BaseModel):
             + f" Allowed relationship types: {Config.allowed_relationship_types}"
         )
 
-    def _to_xml(self, tag: str) -> ET.Element:
+    def _to_xml(self, tag: str, include_body: bool = True) -> ET.Element:
         elem = ET.Element(tag, attrib=self.model_dump(exclude={"body"}, exclude_none=True))
-        if self.body:
+        if include_body and self.body:
             elem.text = self.body
         return elem
 
+    def render(self, include_body: bool = True) -> str:
+        return ET.tostring(self._to_xml("rq-element", include_body), encoding="unicode")
+
     def __str__(self):
-        return ET.tostring(self._to_xml("rq-element"), encoding="unicode")
+        return self.render()
 
 
 class ReqkitRequirement(ReqkitBase):
@@ -59,8 +62,11 @@ class ReqkitRequirement(ReqkitBase):
         default_factory=lambda: _generate_id(strategy=Config.generate_id_strategy)
     )
 
+    def render(self, include_body: bool = True) -> str:
+        return ET.tostring(self._to_xml("rq-req", include_body), encoding="unicode")
+
     def __str__(self):
-        return ET.tostring(self._to_xml("rq-req"), encoding="unicode")
+        return self.render()
 
 
 class ReqkitTrace(ReqkitBase):
