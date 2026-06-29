@@ -34,8 +34,6 @@ def _cmd_mint(args: argparse.Namespace) -> None:
         for _ in range(int(params.qty))
     ]
 
-    print(f"Minted {len(objs)} requirement(s)")
-    print("==================================")
     for obj in objs:
         print(str(obj))
 
