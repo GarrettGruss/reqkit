@@ -6,15 +6,15 @@ from typing import Optional
 class ReqkitBase:
     """Reqkit base class."""
 
-    subtype: Optional[str]
+    rq_type: Optional[str]
     category: Optional[str]
     parent_id: Optional[str]
     parent_rel: Optional[str]
 
     def __str__(self):
         return (
-            "<rq-element" + f' type="{self.subtype}"'
-            if self.subtype
+            "<rq-element" + f' type="{self.rq_type}"'
+            if self.rq_type
             else "" + f' category="{self.category}"'
             if self.category
             else "" + f' parent_id="{self.parent_id}"'
@@ -33,8 +33,8 @@ class ReqkitRequirement(ReqkitBase):
 
     def __str__(self):
         return (
-            "<rq-req" + f' id="{self.id}"' + f' type="{self.subtype}"'
-            if self.subtype
+            "<rq-req" + f' id="{self.id}"' + f' type="{self.rq_type}"'
+            if self.rq_type
             else "" + f' category="{self.category}"'
             if self.category
             else "" + f' parent_id="{self.parent_id}"'
@@ -51,8 +51,8 @@ class ReqkitTrace(ReqkitBase):
 
     def __str__(self):
         return (
-            "<rq-trace" + f' type="{self.subtype}"'
-            if self.subtype
+            "<rq-trace" + f' type="{self.rq_type}"'
+            if self.rq_type
             else "" + f' category="{self.category}"'
             if self.category
             else "" + f' parent_id="{self.parent_id}"'
