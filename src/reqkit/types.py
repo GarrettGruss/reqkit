@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
-
+# import xml.etree.ElementTree as ET
+# Change the __str__ method to use a default xml library
 
 @dataclass
 class ReqkitBase:
