@@ -1,7 +1,7 @@
 [project]
 name = "reqkit"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.2.0"
+description = "Reqkit offers a structured way to construct and track requirements within your project"
 readme = "README.md"
 authors = [
     { name = "Garrett Gruss", email = "garrett.g.gruss@gmail.com" }
@@ -24,4 +24,5 @@ dev = [
     "mypy>=2.1.0",
     "pytest>=9.1.1",
     "ruff>=0.15.20",
+    "twine>=6.2.0",
 ]
