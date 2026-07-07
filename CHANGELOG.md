@@ -11,17 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `src/reqkit/reports/table.py`: `ReqkitTable` class wrapping Rich `Table` for reqkit objects,
-  configured via a `TableConfig` dataclass (`columns`, `title`, `style`, `header_style`, `show_lines`)
-- `extract_column(obj, column)` helper in `table.py` for extracting named column values from any
-  `ReqkitBase` object — delegates to `model_dump()` rather than branching on `isinstance`
+  configured via a `TableConfig` dataclass (`title`, `style`, `header_style`, `show_lines`, `body_lines`)
+- `_body_last(df)` helper in `table.py` that reorders DataFrame columns so `body` is always last
+- `TableConfig.body_lines` param to limit the number of newline-separated lines rendered per body cell
 - `@computed_field type` property on `ReqkitBase`, `ReqkitRequirement`, and `ReqkitTrace` so
   `model_dump()` includes `"type": "req" | "trace"` automatically
-- `rich>=13.0` dependency for terminal table rendering
+- `rich>=13.0` and `pandas>=3.0` dependencies for terminal table rendering
+- `parse --short` flag to limit body output to one line per row
 
 ### Changed
 - Rebuilt `cli` to use `click` (replacing `argparse`); `MintInterface` pydantic model replaced
   by click's native option/argument validation
-- `parse` command now renders output as a Rich table via `ReqkitTable`
+- `parse` command now renders output as a Rich table via `ReqkitTable`, built from `model_dump()`
+  via a pandas DataFrame
 - CLI prints the app version on every invocation via the `click.group` callback
 
 ## [0.2.0] - 2026-06-29

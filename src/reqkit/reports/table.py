@@ -3,43 +3,32 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
+import pandas as pd
 from rich.table import Table
 
 from reqkit.types import ReqkitBase
 
 
-_VALID_COLUMNS = {"type", "id", "subtype", "category", "parent_id", "parent_rel", "body"}
-
-_DEFAULT_COLUMNS = ["type", "id", "subtype", "category", "parent_id", "parent_rel", "body"]
-
-
-def extract_column(obj: ReqkitBase, column: str) -> str:
-    """Return the string value of a named column for a reqkit object."""
-    if column not in _VALID_COLUMNS:
-        raise ValueError(f"Unknown column: {column!r}. Valid: {_VALID_COLUMNS}")
-    value = obj.model_dump().get(column) or ""
-    return value.strip() if column == "body" else value
+def _body_last(df: pd.DataFrame) -> pd.DataFrame:
+    """Return df with columns reordered so 'body' is last, if present."""
+    if "body" not in df.columns:
+        return df
+    return df[[c for c in df.columns if c != "body"] + ["body"]]
 
 
 @dataclass
 class TableConfig:
-    columns: List[str] = field(default_factory=lambda: list(_DEFAULT_COLUMNS))
     title: Optional[str] = None
     style: Optional[str] = None
     header_style: str = "bold"
     show_lines: bool = False
-
-    def __post_init__(self) -> None:
-        unknown = set(self.columns) - _VALID_COLUMNS
-        if unknown:
-            raise ValueError(f"Unknown column(s): {unknown}. Valid: {_VALID_COLUMNS}")
-
+    body_lines: Optional[int] = None
 
 class ReqkitTable:
     """Wraps a Rich Table for a list of ReqkitBase objects."""
 
     def __init__(self, objs: List[ReqkitBase]) -> None:
-        self._objs = objs
+        self._df = pd.DataFrame([obj.model_dump() for obj in objs])
         self._config = TableConfig()
 
     def set_config(self, config: TableConfig) -> "ReqkitTable":
@@ -49,6 +38,12 @@ class ReqkitTable:
 
     def generate(self) -> Table:
         """Build and return the configured Rich Table."""
+        df = _body_last(self._df)
+        if "body" in df.columns:
+            df["body"] = df["body"].str.strip()
+            if self._config.body_lines is not None:
+                df["body"] = df["body"].str.split("\n").str[: self._config.body_lines].str.join("\n")
+
         table = Table(
             title=self._config.title,
             style=self._config.style,
@@ -56,10 +51,10 @@ class ReqkitTable:
             show_lines=self._config.show_lines,
         )
 
-        for col in self._config.columns:
+        for col in df.columns:
             table.add_column(col)
 
-        for obj in self._objs:
-            table.add_row(*[extract_column(obj, col) for col in self._config.columns])
+        for row in df.itertuples(index=False):
+            table.add_row(*[str(v) for v in row])
 
         return table
