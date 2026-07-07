@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-26
+
+### Changed
+- Switching `cli` to use `click` library
+
 ## [0.2.0] - 2026-06-29
 
 Complete rewrite of the project around `reqkit`: a pseudo-XML tag scheme (`<rq-req>`/`<rq-trace>`)
