@@ -7,6 +7,8 @@ Requirements fixture for testing purposes.
 - <rq-req id="dcb5ec" subtype="fr" category="minting" parent_id="fd0eb6" parent_rel="derive">Minted ids shall use a configurable generation strategy, defaulting to hex.</rq-req>
 - <rq-req id="fb950e" subtype="tr" category="serialization">Requirement objects shall serialize to well-formed XML via ElementTree.</rq-req>
 - <rq-req id="82b96f" subtype="ur" category="cli">Users shall be able to mint multiple requirements in a single CLI invocation.</rq-req>
+- <rq-req id="93f47c" subtype="fr" category="generation">The system shall support common sysml requirement types.</rq-req>
+- <rq-req id="87d265">The system shall support the generation of test cases</rq-req>
 
 ### Parsing
 - <rq-req id="7f6532" subtype="nfr" category="parsing">The parser shall reject malformed XML tags without raising an exception.</rq-req>
@@ -17,3 +19,4 @@ Requirements fixture for testing purposes.
 - <rq-req id="e8c152" subtype="req" category="reporting">The tracer shall classify each requirement as compliant, partially-compliant, or non-compliant.</rq-req>
 - <rq-req id="eb29f1" subtype="sr" category="reporting" parent_id="e8c152" parent_rel="refine">The compliance report shall print orphaned trace counts for traces with unresolved parents.</rq-req>
 - <rq-req id="5b24dd" subtype="sr" category="reporting">Stakeholders shall be able to review a compliance report summarizing trace coverage.</rq-req>
+- <rq-req id="2ad50f" subtype="fr" category="reporting">The system shall be able to convert reqkit docs into reqif xml documents.</rq-req>
