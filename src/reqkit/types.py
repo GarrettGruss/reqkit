@@ -1,7 +1,7 @@
 from secrets import token_hex
 from typing import Optional
 import xml.etree.ElementTree as ET
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, computed_field, field_validator
 from reqkit.config import Config
 
 
@@ -15,6 +15,11 @@ def _generate_id(length: int = 6, strategy: str = "hex") -> str:
 
 class ReqkitBase(BaseModel):
     """Reqkit base class."""
+
+    @computed_field
+    @property
+    def type(self) -> str:
+        return "base"
 
     subtype: Optional[str] = None
     category: Optional[str] = None
@@ -58,6 +63,11 @@ class ReqkitBase(BaseModel):
 class ReqkitRequirement(ReqkitBase):
     """Reqkit requirement class."""
 
+    @computed_field
+    @property
+    def type(self) -> str:
+        return "req"
+
     id: str = Field(
         default_factory=lambda: _generate_id(strategy=Config.generate_id_strategy)
     )
@@ -71,3 +81,8 @@ class ReqkitRequirement(ReqkitBase):
 
 class ReqkitTrace(ReqkitBase):
     """Reqkit trace class."""
+
+    @computed_field
+    @property
+    def type(self) -> str:
+        return "trace"

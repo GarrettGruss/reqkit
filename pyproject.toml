@@ -1,6 +1,6 @@
 [project]
 name = "reqkit"
-version = "0.2.1"
+version = "0.3.0"
 description = "Reqkit offers a structured way to construct and track requirements within your project"
 readme = "README.md"
 authors = [
@@ -8,8 +8,11 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "click>=8.0",
+    "pandas>=3.0.3",
     "pydantic>=2.13.4",
     "python-dotenv>=1.2.2",
+    "rich>=13.0",
 ]
 
 [project.scripts]

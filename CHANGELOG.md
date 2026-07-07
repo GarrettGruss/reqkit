@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-06
+
+### Added
+- `src/reqkit/reports/table.py`: `ReqkitTable` class wrapping Rich `Table` for reqkit objects,
+  configured via a `TableConfig` dataclass (`title`, `style`, `header_style`, `show_lines`, `body_lines`)
+- `_body_last(df)` helper in `table.py` that reorders DataFrame columns so `body` is always last
+- `TableConfig.body_lines` param to limit the number of newline-separated lines rendered per body cell
+- `@computed_field type` property on `ReqkitBase`, `ReqkitRequirement`, and `ReqkitTrace` so
+  `model_dump()` includes `"type": "req" | "trace"` automatically
+- `rich>=13.0` and `pandas>=3.0` dependencies for terminal table rendering
+- `parse --short` flag to limit body output to one line per row
+
+### Changed
+- Rebuilt `cli` to use `click` (replacing `argparse`); `MintInterface` pydantic model replaced
+  by click's native option/argument validation
+- `parse` command now renders output as a Rich table via `ReqkitTable`, built from `model_dump()`
+  via a pandas DataFrame
+- CLI prints the app version on every invocation via the `click.group` callback
+
 ## [0.2.0] - 2026-06-29
 
 Complete rewrite of the project around `reqkit`: a pseudo-XML tag scheme (`<rq-req>`/`<rq-trace>`)
