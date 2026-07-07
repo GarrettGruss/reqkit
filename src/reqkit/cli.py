@@ -51,12 +51,11 @@ def mint(
 
 
 @main.command()
-@click.argument("file", type=click.Path(exists=True))
+@click.argument("path", type=click.Path(exists=True))
 @click.option("--short", is_flag=True, default=False, help="Limit body to one line per row.")
-def parse(file: str, short: bool) -> None:
-    """Parse rq- tags out of a file."""
-    with open(file) as f:
-        objs = parse_str(f.read())
+def parse(path: str, short: bool) -> None:
+    """Parse rq- tags out of a file or directory."""
+    objs = _recursive_parse(path)
     config = TableConfig(body_lines=1 if short else None)
     table = ReqkitTable(objs).set_config(config).generate()
     Console().print(table)
