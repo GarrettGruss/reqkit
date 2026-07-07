@@ -1,17 +1,25 @@
 """CLI for reqkit."""
 
 import click
+from importlib.metadata import version
 from pathlib import Path
 from typing import List
 
+from rich.console import Console
+
 from reqkit.parser import parse_str
+from reqkit.reports.table import ReqkitTable, TableConfig
 from reqkit.tracer import Tracer
 from reqkit.types import ReqkitBase, ReqkitRequirement
 
 
-@click.group()
-def main() -> None:
+@click.group(invoke_without_command=True)
+@click.pass_context
+def main(ctx: click.Context) -> None:
     """Scaffold and manage requirement traces."""
+    Console().print(f"Reqkit version: {version('reqkit')}")
+    if ctx.invoked_subcommand is None:
+        click.echo(ctx.get_help())
 
 
 @main.command()
@@ -48,8 +56,8 @@ def parse(file: str) -> None:
     """Parse rq- tags out of a file."""
     with open(file) as f:
         objs = parse_str(f.read())
-    for obj in objs:
-        click.echo(str(obj))
+    table = ReqkitTable(objs).set_config(TableConfig()).generate()
+    Console().print(table)
 
 
 def _recursive_parse(path: str) -> List[ReqkitBase]:

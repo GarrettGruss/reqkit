@@ -7,10 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.3.0] - 2026-07-26
+## [0.3.0] - 2026-07-06
+
+### Added
+- `src/reqkit/reports/table.py`: `ReqkitTable` class wrapping Rich `Table` for reqkit objects,
+  configured via a `TableConfig` dataclass (`columns`, `title`, `style`, `header_style`, `show_lines`)
+- `extract_column(obj, column)` helper in `table.py` for extracting named column values from any
+  `ReqkitBase` object — delegates to `model_dump()` rather than branching on `isinstance`
+- `@computed_field type` property on `ReqkitBase`, `ReqkitRequirement`, and `ReqkitTrace` so
+  `model_dump()` includes `"type": "req" | "trace"` automatically
+- `rich>=13.0` dependency for terminal table rendering
 
 ### Changed
-- Switching `cli` to use `click` library
+- Rebuilt `cli` to use `click` (replacing `argparse`); `MintInterface` pydantic model replaced
+  by click's native option/argument validation
+- `parse` command now renders output as a Rich table via `ReqkitTable`
+- CLI prints the app version on every invocation via the `click.group` callback
 
 ## [0.2.0] - 2026-06-29
 
